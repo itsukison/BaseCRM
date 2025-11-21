@@ -1,0 +1,5 @@
+{
+  "name": "BaseCRM",
+  "description": "Base.orgの美学にインスパイアされた、モダンでミニマルなAI搭載CRM。自動データ生成、Google検索によるエンリッチメント、対話型データベースインターフェースを特徴とします。",
+  "requestFramePermissions": []
+}
