@@ -1,23 +1,29 @@
-
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { COLORS } from '../constants';
 import { IconDatabase, IconPlus, IconSettings, IconChevronRight } from './Icons';
 
 interface SidebarProps {
-    activeView: string;
-    setActiveView: (view: string) => void;
-    tables: {id: string, name: string}[];
+    tables: { id: string, name: string }[];
     currentTableId: string;
     onSelectTable: (id: string) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, tables, currentTableId, onSelectTable }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ tables, currentTableId, onSelectTable }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // Determine active view from current location
+    const isLanding = location.pathname === '/';
+    const isDashboard = location.pathname === '/dashboard';
+    const isCreateTable = location.pathname === '/dashboard/create';
+    const isTableView = location.pathname.startsWith('/dashboard/tables/');
 
     return (
         <div className={`${isCollapsed ? 'w-16' : 'w-64'} h-screen border-r border-gray-200 flex flex-col bg-white z-10 relative transition-all duration-300`}>
             {/* Collapse Toggle */}
-            <button 
+            <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="absolute -right-3 top-8 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 z-20 text-gray-400 hover:text-blue-600"
             >
@@ -25,53 +31,53 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, tab
             </button>
 
             {/* Logo Area */}
-            <div className={`p-6 cursor-pointer group ${isCollapsed ? 'flex justify-center px-2' : ''}`} onClick={() => setActiveView('landing')}>
+            <div className={`p-6 cursor-pointer group ${isCollapsed ? 'flex justify-center px-2' : ''}`} onClick={() => navigate('/')}>
                 <div className="w-6 h-6 transition-transform group-hover:scale-95 shrink-0" style={{ backgroundColor: COLORS.BLUE }}></div>
                 {!isCollapsed && <h1 className="ml-3 text-lg font-bold tracking-tight group-hover:text-blue-600 transition-colors whitespace-nowrap overflow-hidden">BaseCRM</h1>}
             </div>
 
             {/* Main Nav */}
             <nav className="flex-1 px-3 space-y-1">
-                <button 
-                    onClick={() => setActiveView('dashboard')}
-                    className={`w-full text-left px-3 py-2 rounded-sm text-sm font-medium transition-colors flex items-center ${activeView === 'dashboard' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'} ${isCollapsed ? 'justify-center' : 'gap-3'}`}
+                <button
+                    onClick={() => navigate('/dashboard')}
+                    className={`w-full text-left px-3 py-2 rounded-sm text-sm font-medium transition-colors flex items-center ${isDashboard && !isTableView && !isCreateTable ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'} ${isCollapsed ? 'justify-center' : 'gap-3'}`}
                     title="ダッシュボード"
                 >
-                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
                     {!isCollapsed && <span>ダッシュボード</span>}
                 </button>
-                
+
                 {!isCollapsed && (
                     <div className="pt-6 pb-2 px-3 text-[10px] font-mono text-gray-400 uppercase tracking-wider font-bold">
                         データベース
                     </div>
                 )}
                 {isCollapsed && <div className="h-6"></div>}
-                
+
                 {tables.map(table => (
                     <button
                         key={table.id}
                         onClick={() => {
                             onSelectTable(table.id);
-                            setActiveView('table');
+                            navigate(`/dashboard/tables/${table.id}`);
                         }}
-                        className={`w-full text-left px-3 py-2 rounded-sm text-sm font-medium transition-colors flex items-center group ${currentTableId === table.id && activeView === 'table' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'} ${isCollapsed ? 'justify-center' : 'justify-between'}`}
+                        className={`w-full text-left px-3 py-2 rounded-sm text-sm font-medium transition-colors flex items-center group ${currentTableId === table.id && isTableView ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'} ${isCollapsed ? 'justify-center' : 'justify-between'}`}
                         title={table.name}
                     >
                         <div className={`flex items-center ${isCollapsed ? '' : 'gap-2'} overflow-hidden`}>
-                            <IconDatabase className={`w-4 h-4 shrink-0 ${currentTableId === table.id ? 'text-blue-500' : 'text-gray-400'}`} />
+                            <IconDatabase className={`w-4 h-4 shrink-0 ${currentTableId === table.id && isTableView ? 'text-blue-500' : 'text-gray-400'}`} />
                             {!isCollapsed && <span className="truncate">{table.name}</span>}
                         </div>
-                        {!isCollapsed && currentTableId === table.id && <div className="w-1.5 h-1.5 bg-blue-600 rounded-full shrink-0"></div>}
+                        {!isCollapsed && currentTableId === table.id && isTableView && <div className="w-1.5 h-1.5 bg-blue-600 rounded-full shrink-0"></div>}
                     </button>
                 ))}
 
-                <button 
-                    onClick={() => setActiveView('create-table')}
+                <button
+                    onClick={() => navigate('/dashboard/create')}
                     className={`w-full text-left px-3 py-2 mt-2 rounded-sm text-xs font-medium text-gray-500 hover:text-blue-600 hover:bg-gray-50 border border-dashed border-gray-200 hover:border-blue-200 flex items-center transition-all ${isCollapsed ? 'justify-center' : 'gap-2'}`}
                     title="新規作成"
                 >
-                    <IconPlus className="w-3.5 h-3.5 shrink-0"/>
+                    <IconPlus className="w-3.5 h-3.5 shrink-0" />
                     {!isCollapsed && <span>新規作成</span>}
                 </button>
             </nav>
